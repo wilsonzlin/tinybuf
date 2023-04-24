@@ -2,6 +2,11 @@
 name = "tinybuf"
 version = "0.1.0"
 edition = "2021"
+description = "Container for many types of immutable bytes, with optimisations for small arrays"
+license = "Apache-2.0"
+homepage = "https://github.com/wilsonzlin/tinybuf"
+repository = "https://github.com/wilsonzlin/tinybuf.git"
+authors = ["Wilson Lin <code@wilsonl.in>"]
 
 [dependencies]
 off64 = "0.6.0"
