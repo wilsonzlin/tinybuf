@@ -152,10 +152,6 @@ impl TinyBuf {
       TinyBuf::Array23(v) => v.as_slice(),
     }
   }
-
-  pub fn to_vec(&self) -> Vec<u8> {
-    self.as_slice().to_vec()
-  }
 }
 
 impl AsRef<[u8]> for TinyBuf {
