@@ -44,7 +44,7 @@ pub enum TinyBuf {
   Vec {
     // We must choose an endianness, as otherwise we can't know which byte to discard. We choose little endian since most modern CPUs are.
     cap: [u8; 7],
-    ptr: *const u8,
+    ptr: *mut u8,
     len: usize,
   },
   // By creating one variant per length, we reuse enum discriminant byte which allows us to have one more length.
@@ -296,7 +296,7 @@ impl Drop for TinyBuf {
         // See comments at TinyBuf::Vec declaration.
         let cap = usz!(cap.read_u56_le_at(0));
         unsafe {
-          Vec::from_raw_parts(ptr, *len, cap);
+          Vec::from_raw_parts(*ptr, *len, cap);
         };
       }
       _ => {}
@@ -329,12 +329,12 @@ impl From<&'static [u8]> for TinyBuf {
 }
 
 impl From<Vec<u8>> for TinyBuf {
-  fn from(value: Vec<u8>) -> Self {
+  fn from(mut value: Vec<u8>) -> Self {
     // See comments at TinyBuf::Vec declaration.
-    let ptr = value.as_ptr();
+    let ptr = value.as_mut_ptr();
     let cap = u64!(value.capacity());
     assert!(cap < (1 << 56));
-    let cap = create_u56_le(u64!(value.capacity()));
+    let cap = create_u56_le(u64!(cap));
     let len = value.len();
     forget(value);
     Self::Vec { cap, ptr, len }
@@ -374,3 +374,15 @@ We don't implement for all lengths, as arrays with length greater than ARRAY_CAP
 #[rustfmt::skip] impl From<[u8; 21]> for TinyBuf { fn from(value: [u8; 21]) -> Self { Self::Array21(value) } }
 #[rustfmt::skip] impl From<[u8; 22]> for TinyBuf { fn from(value: [u8; 22]) -> Self { Self::Array22(value) } }
 #[rustfmt::skip] impl From<[u8; 23]> for TinyBuf { fn from(value: [u8; 23]) -> Self { Self::Array23(value) } }
+
+#[cfg(test)]
+mod tests {
+  use crate::TinyBuf;
+
+  #[test]
+  fn test_from_vec() {
+    // Ensure that our unsafe From and Drop impl works correctly without any segmentation fault or other crash.
+    // Some possible bugs include: double free, wrong capacity, forgetting to free (not tested by this), mixing `len` and `cap`, mixing endianness of `cap`, mixing pointers with references to pointers (which silently coerce to pointers to pointers, which are still considered pointers and pass type checks).
+    drop(TinyBuf::from(vec![0u8; 2345]));
+  }
+}
