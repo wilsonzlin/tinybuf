@@ -94,7 +94,7 @@ struct MyKV {
 }
 
 impl MyKV {
-  pub fn get(&self, key: &'static str) -> Option<Box<dyn AsRef<[u8]>>> {
+  pub fn get(&self, key: &'static str) -> Option<&Box<dyn AsRef<[u8]>>> {
     self.entries.get(key)
   }
 
