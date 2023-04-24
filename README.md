@@ -1,14 +1,14 @@
 # TinyBuf
 
-Optimised container of immutable owned bytes. Stores `Arc<dyn AsRef<[u8]>>`, `Box<[u8]>`, `Box<dyn AsRef<[u8]>>`, `Vec<u8>`, and `[u8; N]` for small `N` values in one single type (no generics) with a direct move, no additional heap allocation or copying.
+Optimised container of immutable owned bytes. Stores `Arc<dyn AsRef<[u8]>>`, `Box<[u8]>`, `Box<dyn AsRef<[u8]>>`, `Vec<u8>`, and `[u8; N]` for small `N` values in one single type (no generics) with a direct move—no additional heap allocation or copying.
 
 All TinyBuf values are slices, so you get all of the [standard slice methods](https://doc.rust-lang.org/std/primitive.slice.html) directly. TinyBuf also implements:
 
-- `AsRef<[u8]>`.
-- `Clone`.
-- `Hash`.
-- `PartialEq` and `Eq`.
-- `PartialOrd` and `Ord`.
+- `AsRef<[u8]>`
+- `Clone`
+- `Hash`
+- `PartialEq` and `Eq`
+- `PartialOrd` and `Ord`
 
 ## Use case
 
@@ -41,9 +41,9 @@ However, this is not optimal for callers who have their bytes in an array, boxed
 let kv: MyKV = MyKV::new();
 // Fast, direct move, no reallocation or copying.
 kv.set("vec", vec![0, 4, 2]);
-// Requires allocating new Vec and copying into it.
+// Requires allocating a new Vec and copying into it.
 kv.set("boxslice", Box::new(&[0, 4, 2]).to_vec());
-// Requires allocating new Vec and copying into it.
+// Requires allocating a new Vec and copying into it.
 kv.set("array", [0, 4, 2].to_vec());
 ```
 
@@ -79,7 +79,7 @@ impl MyKV {
 }
 ```
 
-While this approach allows storing different types of bytes without copying to a `Vec`, the boxing essentially reverses that optimisation, since calling `Box::new` will always move it to the heap, even for `Box<[u8]>` values. This may not be too bad for data already on the heap, since it's only the struct itself, not the data, that is heap allocated, but it still requires a heap allocation of relatively small sizes.
+While this approach allows storing different types of bytes without copying to a `Vec`, the boxing essentially reverses that optimisation, since calling `Box::new` will always move it to the heap, even for `Box<[u8]>` values. This may not be too bad for data already on the heap, since it's only the struct itself, not the data, that is heap allocated, but it still requires a heap allocation of a relatively small size.
 
 This is where TinyBuf comes in:
 
@@ -111,12 +111,12 @@ kv.set("largearray", TinyBuf::from_slice(&[0u8; 24]));
 kv.set("boxdyn", my_boxed_asref);
 kv.set("arc", my_arced_asref);
 // If you have some other type that TinyBuf doesn't support and cannot convert it to one of the supported types, you can created a boxed trait value, which will require heap allocation.
-kv.set("custom" Box::<dyn AsRef[u8]>::new(my_asrefable_value));
+kv.set("custom", Box::<dyn AsRef[u8]>::new(my_asrefable_value));
 ```
 
 ### Providing data
 
-From the previous `MyKV` examples, one benefit of TinyBuf is to be able to accept and store a lot of different owned byte slice types while providing one single non-generic type, all without heap allocation or copying.
+As shown in the previous `MyKV` example, one benefit of TinyBuf is to be able to accept and store a lot of different owned byte slice types while providing one single non-generic type, all without heap allocation or copying.
 
 Another advantage is the ability to dynamically leverage small inline arrays when reading from a slice and wanting to convert it into an owned value:
 
@@ -136,9 +136,11 @@ Note that in both cases, the data is copied because we want to own the data, but
 
 ## Types
 
+`From<T>` is implemented for these types for easy fast conversion.
+
 |Source type|Notes|
 |---|---|
-|`[u8; N]` where `N <= 23`|Stored inline, no heap allocation or cloning/copying when converting from.|
+|`[u8; N]` where `N <= 23`|Stored inline, no heap allocation or copying of data.|
 |`Arc<dyn AsRef<[u8]> + Send + Sync + 'static>`||
 |`Box<dyn AsRef<[u8]> + Send + Sync + 'static>`||
 |`Box<[u8]>`|This is a separate variant as converting to `Box<dyn AsRef<u8>>` would require further boxing.|
