@@ -11,6 +11,16 @@ All TinyBuf values are slices, so you get all of the [standard slice methods](ht
 - `PartialOrd` and `Ord`
 - `serde::Serialize` and `serde::Deserialize` (with optional `serde` feature)
 
+## Usage
+
+Add it to your dependencies:
+
+```
+cargo add tinybuf
+```
+
+Replace usage of immutable `Vec<u8>` in type locations with `TinyBuf`.
+
 ## Use case
 
 TinyBuf is optimised for these scenarios:
@@ -157,3 +167,29 @@ When you call `TinyVec::clone`, it will try to perform optimal copying:
 - If the length is less than or equal to 23, the data will be cloned into a new `TinyBuf::Array*` variant, even if it's currently not a `TinyBuf::Array*`.
 - If it's a `TinyBuf::Arc`, it will be cheaply cloned using `Arc::clone`.
 - Otherwise, it will be cloned into a new `TinyBuf::BoxSlice` using boxing (i.e. heap allocation).
+
+## Comparison
+
+### `Vec<u8>`
+
+TinyBuf is a container for immutable data, and does not support any mutation methods, unlike `Vec<u8>`.
+
+TinyBuf will avoid a heap allocation if the length is small enough, whereas `Vec<u8>` will always do a heap allocation except for zero bytes.
+
+### `SmallVec` and `TinyVec`
+
+TinyBuf only holds `u8` values and does not support mutation.
+
+TinyBuf doesn't require declaring the length or capacity upfront, and will dynamically optimise arrays of length less than or equal to 23.
+
+TinyBuf can convert from a wide variety of types, not just `Vec<u8>`.
+
+As a rule of thumb, TinyBuf is more of a replacement for an immutable `Box<dyn AsRef<[u8]>>` than a mutable `Vec<u8>`.
+
+### `&[u8]`
+
+If it's possible to use slices, it's definitely preferred. However, when it's not possible, usually due to lifetime constraints, `TinyBuf` provides close to identical functionality.
+
+### `Cow<u8>`
+
+`Cow` still has a lifetime as it could contain borrowed data, so it's not owned like `Vec<u8>` and TinyBuf.
