@@ -20,10 +20,10 @@ All TinyBuf values are slices, so you get all of the [standard slice methods](ht
 * [Types](#types)
 * [Cloning](#cloning)
 * [Comparison](#comparison)
-  + [`Vec<u8>`](#-vec-u8--)
-  + [`SmallVec` and `TinyVec`](#-smallvec--and--tinyvec-)
-  + [`&[u8]`](#---u8--)
-  + [`Cow<u8>`](#-cow-u8--)
+  + [`Vec<u8>`](#vecu8)
+  + [`SmallVec` and `TinyVec`](#smallvec-and-tinyvec)
+  + [`&[u8]`](#u8)
+  + [`Cow<u8>`](#cowu8)
 
 ## Usage
 
