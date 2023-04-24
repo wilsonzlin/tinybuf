@@ -85,6 +85,14 @@ static_assertions::const_assert_eq!(size_of::<Box<dyn AsRef<[u8]>>>(), WORD_SIZE
 static_assertions::const_assert_eq!(size_of::<TinyBuf>(), WORD_SIZE * 3);
 
 impl TinyBuf {
+  pub fn from_static(s: &'static [u8]) -> Self {
+    Self::Static(s)
+  }
+
+  pub fn empty() -> Self {
+    Self::Array0([])
+  }
+
   /// Copy the bytes into a `TinyBuf::Array*` variant if small enough; otherwise, perform a cheap `.into()`.
   pub fn copy_if_small<T: AsRef<[u8]> + Into<TinyBuf>>(v: T) -> TinyBuf {
     if v.as_ref().len() <= ARRAY_CAP {
@@ -324,7 +332,7 @@ impl From<Box<[u8]>> for TinyBuf {
 
 impl From<&'static [u8]> for TinyBuf {
   fn from(value: &'static [u8]) -> Self {
-    Self::Static(value)
+    Self::from_static(value)
   }
 }
 
