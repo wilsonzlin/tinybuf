@@ -85,6 +85,27 @@ static_assertions::const_assert_eq!(size_of::<Box<dyn AsRef<[u8]>>>(), WORD_SIZE
 static_assertions::const_assert_eq!(size_of::<TinyBuf>(), WORD_SIZE * 3);
 
 impl TinyBuf {
+  pub fn from_iter(mut i: impl Iterator<Item = u8>) -> Self {
+    let mut array = [0u8; ARRAY_CAP];
+    let mut len = 0;
+    // This won't allocate because it's zero sized.
+    let mut vec = Vec::new();
+    loop {
+      let Some(elem) = i.next() else {
+        return Self::from_slice(&array[..len]);
+      };
+      if len == ARRAY_CAP {
+        vec.extend_from_slice(&array);
+        vec.push(elem);
+        break;
+      };
+      array[len] = elem;
+      len += 1;
+    }
+    vec.extend(i);
+    vec.into()
+  }
+
   pub fn from_static(s: &'static [u8]) -> Self {
     Self::Static(s)
   }
@@ -386,6 +407,40 @@ We don't implement for all lengths, as arrays with length greater than ARRAY_CAP
 #[cfg(test)]
 mod tests {
   use crate::TinyBuf;
+
+  #[test]
+  #[rustfmt::skip]
+  fn test_from_iter() {
+    let TinyBuf::Array0(_) = TinyBuf::from_iter([0u8; 0].into_iter()) else { panic!() };
+    let TinyBuf::Array1(_) = TinyBuf::from_iter([0u8; 1].into_iter()) else { panic!() };
+    let TinyBuf::Array2(_) = TinyBuf::from_iter([0u8; 2].into_iter()) else { panic!() };
+    let TinyBuf::Array3(_) = TinyBuf::from_iter([0u8; 3].into_iter()) else { panic!() };
+    let TinyBuf::Array4(_) = TinyBuf::from_iter([0u8; 4].into_iter()) else { panic!() };
+    let TinyBuf::Array5(_) = TinyBuf::from_iter([0u8; 5].into_iter()) else { panic!() };
+    let TinyBuf::Array6(_) = TinyBuf::from_iter([0u8; 6].into_iter()) else { panic!() };
+    let TinyBuf::Array7(_) = TinyBuf::from_iter([0u8; 7].into_iter()) else { panic!() };
+    let TinyBuf::Array8(_) = TinyBuf::from_iter([0u8; 8].into_iter()) else { panic!() };
+    let TinyBuf::Array9(_) = TinyBuf::from_iter([0u8; 9].into_iter()) else { panic!() };
+    let TinyBuf::Array10(_) = TinyBuf::from_iter([0u8; 10].into_iter()) else { panic!() };
+    let TinyBuf::Array11(_) = TinyBuf::from_iter([0u8; 11].into_iter()) else { panic!() };
+    let TinyBuf::Array12(_) = TinyBuf::from_iter([0u8; 12].into_iter()) else { panic!() };
+    let TinyBuf::Array13(_) = TinyBuf::from_iter([0u8; 13].into_iter()) else { panic!() };
+    let TinyBuf::Array14(_) = TinyBuf::from_iter([0u8; 14].into_iter()) else { panic!() };
+    let TinyBuf::Array15(_) = TinyBuf::from_iter([0u8; 15].into_iter()) else { panic!() };
+    let TinyBuf::Array16(_) = TinyBuf::from_iter([0u8; 16].into_iter()) else { panic!() };
+    let TinyBuf::Array17(_) = TinyBuf::from_iter([0u8; 17].into_iter()) else { panic!() };
+    let TinyBuf::Array18(_) = TinyBuf::from_iter([0u8; 18].into_iter()) else { panic!() };
+    let TinyBuf::Array19(_) = TinyBuf::from_iter([0u8; 19].into_iter()) else { panic!() };
+    let TinyBuf::Array20(_) = TinyBuf::from_iter([0u8; 20].into_iter()) else { panic!() };
+    let TinyBuf::Array21(_) = TinyBuf::from_iter([0u8; 21].into_iter()) else { panic!() };
+    let TinyBuf::Array22(_) = TinyBuf::from_iter([0u8; 22].into_iter()) else { panic!() };
+    let TinyBuf::Array23(_) = TinyBuf::from_iter([0u8; 23].into_iter()) else { panic!() };
+
+    let TinyBuf::Vec { .. } = TinyBuf::from_iter([0u8; 24].into_iter()) else { panic!() };
+    assert_eq!(TinyBuf::from_iter([0u8; 24].into_iter()).as_slice(), &[0u8; 24]);
+    let TinyBuf::Vec { .. } = TinyBuf::from_iter([0u8; 25].into_iter()) else { panic!() };
+    assert_eq!(TinyBuf::from_iter([0u8; 25].into_iter()).as_slice(), &[0u8; 25]);
+  }
 
   #[test]
   fn test_from_vec() {
