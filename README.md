@@ -196,7 +196,7 @@ TinyBuf only holds `u8` values and does not support mutation.
 
 TinyBuf doesn't require declaring the length or capacity upfront, and will dynamically optimise arrays of length less than or equal to 23.
 
-TinyBuf can convert from a wide variety of types, not just `Vec<u8>`.
+TinyBuf converts from a wide variety of types, not just `Vec<u8>`, and does so using only a move, no data copying.
 
 As a rule of thumb, TinyBuf is more of a replacement for an immutable `Box<dyn AsRef<[u8]>>` than a mutable `Vec<u8>`.
 
