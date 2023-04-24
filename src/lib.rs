@@ -85,6 +85,15 @@ static_assertions::const_assert_eq!(size_of::<Box<dyn AsRef<[u8]>>>(), WORD_SIZE
 static_assertions::const_assert_eq!(size_of::<TinyBuf>(), WORD_SIZE * 3);
 
 impl TinyBuf {
+  /// Copy the bytes into a `TinyBuf::Array*` variant if small enough; otherwise, perform a cheap `.into()`.
+  pub fn copy_if_small<T: AsRef<[u8]> + Into<TinyBuf>>(v: T) -> TinyBuf {
+    if v.as_ref().len() <= ARRAY_CAP {
+      Self::from_slice(v.as_ref())
+    } else {
+      v.into()
+    }
+  }
+
   /// This may heap allocate if the length is larger than `ARRAY_CAP`.
   pub fn from_slice(s: &[u8]) -> Self {
     match s.len() {
@@ -231,6 +240,52 @@ impl Hash for TinyBuf {
 impl Debug for TinyBuf {
   fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
     self.as_slice().fmt(f)
+  }
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for TinyBuf {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: serde::Serializer,
+  {
+    self.as_slice().serialize(serializer)
+  }
+}
+
+#[cfg(feature = "serde")]
+struct SerdeDeserializeVisitor;
+
+#[cfg(feature = "serde")]
+impl<'de> serde::de::Visitor<'de> for SerdeDeserializeVisitor {
+  type Value = TinyBuf;
+
+  fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    formatter.write_str("a byte array")
+  }
+
+  fn visit_byte_buf<E>(self, v: Vec<u8>) -> Result<Self::Value, E>
+  where
+    E: serde::de::Error,
+  {
+    Ok(v.into())
+  }
+
+  fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
+  where
+    E: serde::de::Error,
+  {
+    Ok(TinyBuf::from_slice(v))
+  }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for TinyBuf {
+  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+  where
+    D: serde::Deserializer<'de>,
+  {
+    deserializer.deserialize_byte_buf(SerdeDeserializeVisitor)
   }
 }
 

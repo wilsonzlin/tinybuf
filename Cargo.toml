@@ -8,6 +8,11 @@ homepage = "https://github.com/wilsonzlin/tinybuf"
 repository = "https://github.com/wilsonzlin/tinybuf.git"
 authors = ["Wilson Lin <code@wilsonl.in>"]
 
+[features]
+default = []
+serde = ["dep:serde"]
+
 [dependencies]
 off64 = "0.6.0"
+serde = { version = "1.0.160", features = ["derive"], optional = true }
 static_assertions = "1.1.0"

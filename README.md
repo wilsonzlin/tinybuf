@@ -9,6 +9,7 @@ All TinyBuf values are slices, so you get all of the [standard slice methods](ht
 - `Hash`
 - `PartialEq` and `Eq`
 - `PartialOrd` and `Ord`
+- `serde::Serialize` and `serde::Deserialize` (with optional `serde` feature)
 
 ## Use case
 
@@ -137,6 +138,8 @@ Note that in both cases, the data is copied because we want to own the data, but
 ## Types
 
 `From<T>` is implemented for these types for easy fast conversion.
+
+Note that these will always perform a fast move operation. If you'd like TinyBuf to try and copy the data into an inline `TinyBuf::Array*` variant if the length is small enough, and do a standard `.into()` otherwise, use `TinyBuf::copy_if_small`.
 
 |Source type|Notes|
 |---|---|
