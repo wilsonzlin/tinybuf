@@ -278,7 +278,8 @@ impl serde::Serialize for TinyBuf {
   where
     S: serde::Serializer,
   {
-    self.as_slice().serialize(serializer)
+    // Do not use `self.as_slice().serialize(serializer)` as that may not be as efficient; see https://github.com/serde-rs/bytes for details and implementation.
+    serializer.serialize_bytes(self.as_slice())
   }
 }
 
